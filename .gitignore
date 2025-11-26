@@ -1,0 +1,6 @@
+*.f
+*.dat
+*.40
+*.f90
+dime
+/__pycache__
