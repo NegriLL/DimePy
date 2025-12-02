@@ -1,13 +1,28 @@
 import numpy as np
+from scipy.special import j0
 
 from parser import parse_arguments
 
-# ToDo: once program is completed we need to reevaluate the use of global variables.
-global cc0, bm, bb0, pp0, bex, asp, sigo, gaa, ep, norm # fortran block pars
-global nch                                              # fortrant block ipars
-global s, rts, mmes, yx                                 # fortrant block vars
+# Initialize global variables
+nch = 0
+cc0 = np.zeros(5, dtype=float)
+bm = np.zeros(5, dtype=float)
+bb0 = np.zeros(5, dtype=float)
+pp0 = np.zeros(5, dtype=float)
+bex = np.zeros(5, dtype=float)
+asp = 0.0
+sigo = 0.0
+gaa = np.zeros(5, dtype=float)
+ep = 0.0
+norm = 0.0
+rts = 0.0
+
+# Initialize opacity arrays
+op = np.zeros((5, 5, 10000, 2), dtype=float)
+oph = np.zeros((5, 5, 10000, 2), dtype=float)
 
 def initpars(iin, rts):
+    global cc0, bm, bb0, pp0, bex, asp, sigo, gaa, ep, norm, nch
     i1 = 0
     i2 = 0
     nch = 0
@@ -112,7 +127,7 @@ def initpars(iin, rts):
     norm = sum
 
 
-def calcop():
+def calcscreen():
     sca = np.zeros((5, 5, 40001, 2), dtype=float)
     sca1 = np.zeros((5, 5, 40001, 2), dtype=float)
 
@@ -132,7 +147,7 @@ def calcop():
             lgksq = 0.0
         else:
             lgksq = (ib - 1) * lginck + np.log(ksqmin)
-            ksq = dexp(lgksq)
+            ksq = np.exp(lgksq)
         
         for i in range(nch):
             for j  in range(nch):
@@ -142,20 +157,111 @@ def calcop():
                 sca1[i, j, ib, 0] = lgksq
                 sca1[i, j, ib, 1] = sc1
 
+def screening(i, j, ktsq):
+    nb = 5000
+    hb = 99 / nb
+
+    sc = 0
+    sc1 = 0
+
+    for ib in range(0, nb + 1): # Once again to include the mac nb value in python we need to add 1.
+        bt = ib * hb
+        wt = -bt/ 2 / np.pi * hb
+
+        fr, fr1 = opacityint(i, j, bt)
+
+        sige = sigo * np.exp(np.log(rts) * 2 * ep)
+        fr = fr * gaa[i] * gaa[j] * sige
+        fr1 = fr1 * gaa[i] * gaa[j] * sige
+
+        sc = sc + wt * (1 - np.exp(-fr/2)) * j0(bt * np.sqrt(ktsq)) * gaa[i] * gaa[j]
+        sc1 = sc1 + wt * (1 - np.exp(-fr1/2)) * j0(bt * np.sqrt(ktsq)) * gaa[i] * gaa[j]
+
+    return sc, sc1
+
+def opacityint(i, j, bt):
+    incbt = op[1,1,2,1] - op[1,1,1,1]
+    it = int(np.round(bt/incbt))
+    if(it > bt / incbt):
+        it = it - 1
+
+    m = (op[i, j, it + 2, 2] - op[i, j, it+1, 1])/(op[i, j, it + 2, 0] - op[i, j, it+1, 0])
+    delta = bt - op[1, 1, it+1, 1]
+    mh = (oph[i, j, it + 2, 2] - oph[i, j, it+1, 1])/(oph[i, j, it + 2, 0] - oph[i, j, it+1, 0])
+    deltah = bt - oph[1, 1, it+1, 1]
+
+    fr = m * delta + op[i, j, it+1, 2]
+    fr1 = mh * deltah + oph[i, j, it+1, 2]
+
+    return fr, fr1
 
 
-# ToDo: implement dexp
-def dexp(lgksq):
-    pass
+def calcop():
+    global op, oph
+    nb = 900
+    hb = 100/nb
+
+    print("Calculating Opacity")
+    with open('output.dat', 'w') as file:
+
+        for ib in range(1, nb + 2):
+            bt = (ib-1)*hb
+
+            for i in range(0, nch):
+                for j in range(0, nch):
+                    fr, fr1 = opacity(i, j, bt)
+
+                    op[i, j, ib, 0] = bt
+                    op[i, j, ib, 1] = fr
+                    oph[i, j, ib, 0] = bt
+                    oph[i, j, ib, 1] = fr1
+
+                    file.write(f"{bt} {fr} {fr1}\n")
 
 
-# ToDo: implement screening
-def screening(i, j, ksq):
-    pass
+def opacity(i, j, bt):
+    ampi = 0.02
+    amro = 1
+    a4 = 4 * ampi
+    alo = np.log(amro/ampi)
+    bpol = 2.4
 
+    nt = 6000
+    htt = 6/np.pow(nt, 2)
+
+    fr = 0
+    fr1 = 0
+
+    for it in range(0, nt + 1):
+        t = np.pow(it, 2) * htt
+        wt = htt * 2 * it/4/np.pi
+        if it == 0:
+            t = 1e-8
+            wt = wt/2
+        bes0 = j0(bt*np.sqrt(t))
+
+        ffi = np.exp(-np.pow((t+0.08+bb0[i])*bex[i],cc0[i])
+                    +np.pow(bex[i]*(bb0[i]+0.08),cc0[i]))
+        ffj = np.exp(-np.pow((t+0.08+bb0[j])*bex[j],cc0[j])
+                    +np.pow(bex[j]*(bb0[j]+0.08),cc0[j]))
+        
+        asp1 = asp
+        form1 = np.log(ffi*ffj) - 2 * t * asp1 * np.log(rts)
+
+        ah = np.sqrt(1+a4/t)
+        h1pi=2*a4+t*(alo - pow(ah, 3) * np.log((1+ah)/(ah-1))) # Pion loop insertion
+        h1pi=h1pi * sigo/(72 * np.pow(np.pi,3) * np.pow((1+t/bpol),2))
+
+        ww = bes0 * np.exp(form1-2*h1pi*np.log(rts))
+        aspt=t*asp+h1pi
+
+        fr = fr + ww + wt
+        fr1 = fr1 + bes0 * wt * ffi * ffj 
+
+        return fr, fr1
 
 def main():
-
+    global rts
     rts=13.0e3  # Centre of mass Energy
 
     # Some basic cuts, imposed in subtroutine 'icut'. Other user defined cuts can readily be implemented in subroutine
@@ -186,5 +292,6 @@ def main():
 
     initpars(args.iin, rts)
     calcop()
+    calcscreen()
 
 main()
