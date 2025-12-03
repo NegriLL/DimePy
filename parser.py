@@ -1,3 +1,5 @@
+import numpy as np
+
 import argparse
 import textwrap
 
@@ -57,6 +59,14 @@ def parse_arguments():
 
 def parse_meson_parameters(pflag):
     params = {}
+
+    # Initialize event record arrays (MAXNUP=500 in Fortran)
+    params['istup'] = np.zeros(500, dtype=int)
+    params['idup'] = np.zeros(500, dtype=int)
+    params['mothup'] = np.zeros((2, 500), dtype=int)
+    params['icolup'] = np.zeros((2, 500), dtype=int)
+    params['vtimup'] = np.zeros(500, dtype=float)
+    params['spinup'] = np.zeros(500, dtype=float)
     
     if pflag == 'pipm':
         params['mmes'] = 0.13957018 # pi+/- mass, PDG 2011 value
@@ -65,6 +75,26 @@ def parse_meson_parameters(pflag):
         params['alpha0m'] = -0.7 * params['mmes']**2
         params['cf'] = 31.79 / 0.389
         params['crho'] = 4.23 / 0.389
+
+        params['nup'] = 6
+        params['istup'][4] = 1
+        params['idup'][4] = 211
+        params['mothup'][0, 4] = 1
+        params['mothup'][1, 4] = 2
+        params['icolup'][0, 4] = 0
+        params['icolup'][1, 4] = 0
+        params['vtimup'][4] = 0
+        params['spinup'][4] = 9.
+
+        params['istup'][5] = 1
+        params['idup'][5] = -211
+        params['mothup'][0, 5] = 1
+        params['mothup'][1, 5] = 2
+        params['icolup'][0, 5] = 0
+        params['icolup'][1, 5] = 0
+        params['vtimup'][5] = 0
+        params['spinup'][5] = 9.
+
         
     elif pflag == 'pi0':
         params['mmes'] = 0.1349766  # pi0 mass, PDG 2011 value
@@ -73,6 +103,25 @@ def parse_meson_parameters(pflag):
         params['alpha0m'] = -0.7 * params['mmes']**2
         params['cf'] = 31.79 / 0.389
         params['crho'] = 0.0
+
+        params['nup'] = 6
+        params['istup'][4] = 1
+        params['idup'][4] = 111
+        params['mothup'][0, 4] = 1
+        params['mothup'][1, 4] = 2
+        params['icolup'][0, 4] = 0
+        params['icolup'][1, 4] = 0
+        params['vtimup'][4] = 0
+        params['spinup'][4] = 9.
+
+        params['istup'][5] = 1
+        params['idup'][5] = -111
+        params['mothup'][0, 5] = 1
+        params['mothup'][1, 5] = 2
+        params['icolup'][0, 5] = 0
+        params['icolup'][1, 5] = 0
+        params['vtimup'][5] = 0
+        params['spinup'][5] = 9.
         
     elif pflag == 'kpkm':
         params['mmes'] = 0.493677  # K+/- mass, PDG 2011 value
@@ -81,6 +130,25 @@ def parse_meson_parameters(pflag):
         params['alpha0m'] = None
         params['cf'] = 17.255 / 0.389
         params['crho'] = 9.105 / 0.389
+
+        params['nup'] = 6
+        params['istup'][4] = 1
+        params['idup'][4] = 321
+        params['mothup'][0, 4] = 1
+        params['mothup'][1, 4] = 2
+        params['icolup'][0, 4] = 0
+        params['icolup'][1, 4] = 0
+        params['vtimup'][4] = 0
+        params['spinup'][4] = 9.
+
+        params['istup'][5] = 1
+        params['idup'][5] = -321
+        params['mothup'][0, 5] = 1
+        params['mothup'][1, 5] = 2
+        params['icolup'][0, 5] = 0
+        params['icolup'][1, 5] = 0
+        params['vtimup'][5] = 0
+        params['spinup'][5] = 9.
         
     elif pflag == 'ks':
         params['mmes'] = 0.497614  # K_0 mass, PDG 2011 value
@@ -89,6 +157,25 @@ def parse_meson_parameters(pflag):
         params['alpha0m'] = None
         params['cf'] = 17.255 / 0.389
         params['crho'] = 0.0
+
+        params['nup'] = 6
+        params['istup'][4] = 1
+        params['idup'][4] = 310
+        params['mothup'][0, 4] = 1
+        params['mothup'][1, 4] = 2
+        params['icolup'][0, 4] = 0
+        params['icolup'][1, 4] = 0
+        params['vtimup'][4] = 0
+        params['spinup'][4] = 9.
+
+        params['istup'][5] = 1
+        params['idup'][5] = 310
+        params['mothup'][0, 5] = 1
+        params['mothup'][1, 5] = 2
+        params['icolup'][0, 5] = 0
+        params['icolup'][1, 5] = 0
+        params['vtimup'][5] = 0
+        params['spinup'][5] = 9.
         
     elif pflag == 'rho':
         params['mmes0'] = 0.77549  # rho mass, PDG 2013 value
@@ -98,6 +185,42 @@ def parse_meson_parameters(pflag):
         params['alpha0m'] = None
         params['cf'] = 0.0
         params['crho'] = 0.0
+
+        params['nup'] = 10
+        params['istup'][4] = 2
+        params['idup'][4] = 113
+        params['mothup'][0, 4] = 1
+        params['mothup'][1, 4] = 2
+        params['icolup'][0, 4] = 0
+        params['icolup'][1, 4] = 0
+        params['vtimup'][4] = 0
+        params['spinup'][4] = 9.
+
+        params['istup'][5] = 2
+        params['idup'][5] = 113
+        params['mothup'][0, 5] = 1
+        params['mothup'][1, 5] = 2
+        params['icolup'][0, 5] = 0
+        params['icolup'][1, 5] = 0
+        params['vtimup'][5] = 0
+        params['spinup'][5] = 9.
+
+        for k in range(6, 10):
+            params['istup'][k] = 1
+            params['mothup'][1, k] = 0
+            params['icolup'][0, k] = 0
+            params['icolup'][1, k] = 0
+            params['vtimup'][k] = 0
+            params['spinup'][k] = 9.
+
+        params['idup'][6] = 211
+        params['idup'][7] = -211
+        params['idup'][8] = 211
+        params['idup'][9] = -211
+        params['mothup'][0, 6] = 5
+        params['mothup'][0, 7] = 5
+        params['mothup'][0, 8] = 6
+        params['mothup'][0, 9] = 6
         
     elif pflag == 'phi':
         params['mmes0'] = 1.01946  # phi mass, PDG 2013 value
@@ -107,6 +230,42 @@ def parse_meson_parameters(pflag):
         params['alpha0m'] = None
         params['cf'] = 0.0
         params['crho'] = 0.0
+
+        params['nup'] = 10
+        params['istup'][4] = 2
+        params['idup'][4] = 333
+        params['mothup'][0, 4] = 1
+        params['mothup'][1, 4] = 2
+        params['icolup'][0, 4] = 0
+        params['icolup'][1, 4] = 0
+        params['vtimup'][4] = 0
+        params['spinup'][4] = 9.
+
+        params['istup'][5] = 2
+        params['idup'][5] = 333
+        params['mothup'][0, 5] = 1
+        params['mothup'][1, 5] = 2
+        params['icolup'][0, 5] = 0
+        params['icolup'][1, 5] = 0
+        params['vtimup'][5] = 0
+        params['spinup'][5] = 9.
+
+        for k in range(6, 10):
+            params['istup'][k] = 1
+            params['mothup'][1, k] = 0
+            params['icolup'][0, k] = 0
+            params['icolup'][1, k] = 0
+            params['vtimup'][k] = 0
+            params['spinup'][k] = 9.
+
+        params['idup'][6] = 321
+        params['idup'][7] = -321
+        params['idup'][8] = 321
+        params['idup'][9] = -321
+        params['mothup'][0, 6] = 5
+        params['mothup'][0, 7] = 5
+        params['mothup'][0, 8] = 6
+        params['mothup'][0, 9] = 6
         
     else:
         raise ValueError(f"Unknown pflag value {pflag}. pflag must be pipm, pi0, kpkm, ks, rho or phi")
