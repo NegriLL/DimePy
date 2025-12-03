@@ -255,6 +255,7 @@ def opacity(i, j, bt):
 
     return fr, fr1
 
+
 def main():
     global rts
     rts=13.0e3  # Centre of mass Energy
@@ -324,6 +325,18 @@ def main():
     # and then it reassigns it later. This should be equivalent in python 
     # while avoiding uninitiated parameters
     mmes1 = mmes2 = meson_parameters.get('mmes') or meson_parameters.get('mmes0')
+
+    # Initialise RAMBO (rho0 decay)
+    if args.pflag == 'rho':
+        nparts = 2
+        am = np.zeros(4)
+        for i in range(4):
+            am[i] = 0.13957018
+    elif args.pflag == 'phi':
+        nparts = 2
+        am = np.zeros(4)
+        for i in range(4):
+            am[i] = 0.493677
 
 
 
