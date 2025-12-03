@@ -55,6 +55,65 @@ def parse_arguments():
     return args
 
 
+def parse_meson_parameters(pflag):
+    params = {}
+    
+    if pflag == 'pipm':
+        params['mmes'] = 0.13957018 # pi+/- mass, PDG 2011 value
+        params['sig0'] = 13.63
+        params['alphapm'] = 0.7
+        params['alpha0m'] = -0.7 * params['mmes']**2
+        params['cf'] = 31.79 / 0.389
+        params['crho'] = 4.23 / 0.389
+        
+    elif pflag == 'pi0':
+        params['mmes'] = 0.1349766  # pi0 mass, PDG 2011 value
+        params['sig0'] = 13.63
+        params['alphapm'] = 0.7
+        params['alpha0m'] = -0.7 * params['mmes']**2
+        params['cf'] = 31.79 / 0.389
+        params['crho'] = 0.0
+        
+    elif pflag == 'kpkm':
+        params['mmes'] = 0.493677  # K+/- mass, PDG 2011 value
+        params['sig0'] = 11.82
+        params['alphapm'] = None   # Not set in Fortran for kaons
+        params['alpha0m'] = None
+        params['cf'] = 17.255 / 0.389
+        params['crho'] = 9.105 / 0.389
+        
+    elif pflag == 'ks':
+        params['mmes'] = 0.497614  # K_0 mass, PDG 2011 value
+        params['sig0'] = 11.82
+        params['alphapm'] = None
+        params['alpha0m'] = None
+        params['cf'] = 17.255 / 0.389
+        params['crho'] = 0.0
+        
+    elif pflag == 'rho':
+        params['mmes0'] = 0.77549  # rho mass, PDG 2013 value
+        params['mwidth'] = 0.1491  # rho width, PDG 2013 value
+        params['sig0'] = 10.0
+        params['alphapm'] = None
+        params['alpha0m'] = None
+        params['cf'] = 0.0
+        params['crho'] = 0.0
+        
+    elif pflag == 'phi':
+        params['mmes0'] = 1.01946  # phi mass, PDG 2013 value
+        params['mwidth'] = 0.00426 # phi width, PDG 2013 value
+        params['sig0'] = 5.7       # Scale by (m_rho/m_phi)^2 for phi pair production
+        params['alphapm'] = None
+        params['alpha0m'] = None
+        params['cf'] = 0.0
+        params['crho'] = 0.0
+        
+    else:
+        raise ValueError(f"Unknown pflag value {pflag}. pflag must be pipm, pi0, kpkm, ks, rho or phi")
+    
+    return params
+
+
 def preamble():
     return textwrap.dedent('''
 ###########################################################
