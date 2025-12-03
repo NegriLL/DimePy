@@ -8,3 +8,4 @@ dime
 /__pycache__
 /dimemc
 .venv
+.DS_Store
