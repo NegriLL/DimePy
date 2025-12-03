@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.special import j0
 
-from parser import parse_arguments
+from parser import parse_arguments, parse_meson_parameters
 
 # Initialize global variables
 nch = 0
@@ -92,7 +92,7 @@ def initpars(iin, rts):
         bex = np.array([5.30, 3.80, 0.00, 0.0, 0.0], dtype=float)
 
     else:
-        raise Exception("Error initiating parameters. Value iin must be 1, 2, 3 or 4")
+        raise ValueError(f"Error initiating parameters. Unknown iin value {iin}. Value iin must be 1, 2, 3 or 4")
 
     if nch == 3:
         pp0[2] = 3.0 - pp0[1] - pp0[0]
@@ -120,12 +120,11 @@ def initpars(iin, rts):
     
     sum = 0.0
 
-    for i in range(nch):  # fortrant starts arrays at 1 so this should be equivalent
+    for i in range(nch):
         for j in range(nch):
-            sum = sum + gaa[i] + gaa[j] * pp0[1] * pp0[j]/np.pow(nch, 2)
+            sum = sum + gaa[i] * gaa[j] * pp0[i] * pp0[j]/np.pow(nch, 2)
 
     norm = sum
-
 
 def calcscreen():
     sca = np.zeros((5, 5, 40001, 2), dtype=float)
@@ -139,18 +138,16 @@ def calcscreen():
 
     print('Calculating screening amplitude')
 
-    for ib in range(0, ns + 2):  # we want ib to include 0 and go up to ns + 1 so we need ns + 2 to be equivalent to fortran
-        ksq = (ib - 1) * inck
-        lgksq = ksq
+    for ib in range(ns + 2): 
         if ib == 0:
-            ksq = 0
+            ksq = 0.0
             lgksq = 0.0
         else:
             lgksq = (ib - 1) * lginck + np.log(ksqmin)
             ksq = np.exp(lgksq)
         
         for i in range(nch):
-            for j  in range(nch):
+            for j in range(nch):
                 sc, sc1 = screening(i, j, ksq)
                 sca[i, j, ib, 0] = lgksq
                 sca[i, j, ib, 1] = sc
@@ -159,14 +156,14 @@ def calcscreen():
 
 def screening(i, j, ktsq):
     nb = 5000
-    hb = 99 / nb
+    hb = 99.0 / nb
 
     sc = 0
     sc1 = 0
 
-    for ib in range(0, nb + 1): # Once again to include the mac nb value in python we need to add 1.
-        bt = ib * hb
-        wt = -bt/ 2 / np.pi * hb
+    for ib in range(1, nb + 1):
+        bt = (ib - 1) * hb
+        wt = -bt / 2.0 / np.pi * hb
 
         fr, fr1 = opacityint(i, j, bt)
 
@@ -180,18 +177,17 @@ def screening(i, j, ktsq):
     return sc, sc1
 
 def opacityint(i, j, bt):
-    incbt = op[1,1,2,1] - op[1,1,1,1]
-    it = int(np.round(bt/incbt))
-    if(it > bt / incbt):
-        it = it - 1
+    global op, oph
+    incbt = op[0, 0, 1, 0] - op[0, 0, 0, 0]
+    it = int(np.floor(bt/incbt))
 
-    m = (op[i, j, it + 2, 2] - op[i, j, it+1, 1])/(op[i, j, it + 2, 0] - op[i, j, it+1, 0])
-    delta = bt - op[1, 1, it+1, 1]
-    mh = (oph[i, j, it + 2, 2] - oph[i, j, it+1, 1])/(oph[i, j, it + 2, 0] - oph[i, j, it+1, 0])
-    deltah = bt - oph[1, 1, it+1, 1]
+    m = (op[i, j, it + 1, 1] - op[i, j, it, 1])/(op[i, j, it + 1, 0] - op[i, j, it, 0])
+    delta = bt - op[0, 0, it, 0]
+    mh = (oph[i, j, it + 1, 1] - oph[i, j, it, 1])/(oph[i, j, it + 1, 0] - oph[i, j, it, 0])
+    deltah = bt - oph[0, 0, it, 0]
 
-    fr = m * delta + op[i, j, it+1, 2]
-    fr1 = mh * deltah + oph[i, j, it+1, 2]
+    fr = m * delta + op[i, j, it, 1]
+    fr1 = mh * deltah + oph[i, j, it, 1]
 
     return fr, fr1
 
@@ -199,24 +195,23 @@ def opacityint(i, j, bt):
 def calcop():
     global op, oph
     nb = 900
-    hb = 100/nb
+    hb = 100.0/nb
 
     print("Calculating Opacity")
     with open('output.dat', 'w') as file:
 
-        for ib in range(1, nb + 2):
-            bt = (ib-1)*hb
+        for ib in range(nb + 1):
+            bt = ib * hb
 
-            for i in range(0, nch):
-                for j in range(0, nch):
+            for i in range(nch):
+                for j in range(nch):
                     fr, fr1 = opacity(i, j, bt)
 
                     op[i, j, ib, 0] = bt
                     op[i, j, ib, 1] = fr
                     oph[i, j, ib, 0] = bt
                     oph[i, j, ib, 1] = fr1
-
-                    file.write(f"{bt} {fr} {fr1}\n")
+                    file.write(f"{bt:24.16f}  {fr:.16e}  {fr1:.16e}\n")
 
 
 def opacity(i, j, bt):
@@ -232,7 +227,7 @@ def opacity(i, j, bt):
     fr = 0
     fr1 = 0
 
-    for it in range(0, nt + 1):
+    for it in range(nt + 1):
         t = np.pow(it, 2) * htt
         wt = htt * 2 * it/4/np.pi
         if it == 0:
@@ -255,10 +250,10 @@ def opacity(i, j, bt):
         ww = bes0 * np.exp(form1-2*h1pi*np.log(rts))
         aspt=t*asp+h1pi
 
-        fr = fr + ww + wt
+        fr = fr + ww * wt
         fr1 = fr1 + bes0 * wt * ffi * ffj 
 
-        return fr, fr1
+    return fr, fr1
 
 def main():
     global rts
@@ -293,5 +288,43 @@ def main():
     initpars(args.iin, rts)
     calcop()
     calcscreen()
+
+    meson_parameters = parse_meson_parameters(args.pflag)
+
+    # Other parameters
+    ebeam = rts / 2.0
+    s = rts**2
+    zi = 0 + 1j
+    rt2 = np.sqrt(2.0)
+    pi = np.arccos(-1.0)
+    bp = rts / np.sqrt(2.0)
+    mp = 0.93827
+    beta = np.sqrt(1.0 - 4.0 * mp**2 / s)
+    s0 = 1.0
+
+    # Pomeron + t-slope
+    bb = 4.0
+    bjac = 6.0
+    bjac1 = 2.0
+
+    alphap = 0.25    # D-L 92 fit
+    alpha0 = 1.0808
+    alphapr = 0.93
+    alpha0r = 0.55
+
+    mf127 = 1.275
+    mf1525 = 1.525
+
+    cpom = meson_parameters.get("sig0") / 0.389
+    aff = -0.860895
+    ar = -1.16158
+
+    # Fortran code assigns this in a weird way (lines 406 and 407)
+    # where mmes might not be initialized if pflag is set to rho or phi
+    # and then it reassigns it later. This should be equivalent in python 
+    # while avoiding uninitiated parameters
+    mmes1 = mmes2 = meson_parameters.get('mmes') or meson_parameters.get('mmes0')
+
+
 
 main()
