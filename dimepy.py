@@ -338,6 +338,54 @@ def main():
         for i in range(4):
             am[i] = 0.493677
 
+    # initialise counters
+    nhist = 1
+    sum = 0
+    sum1 = 0.0
+    ncut = 0
 
+    weight = 0.0
+
+    # ToDo: initilise histograms once I know  what kind of values are stored
+
+    num = 0
+
+    # Incoming protons to event record array
+    ID = np.zeros(20)
+    q = np.zeros((4, 20))
+    pup = np.zeros((5, 500))
+
+    ID[0] = 2212
+    q[:, 0] = [0, 0, ebeam * beta, ebeam]
+    
+    meson_parameters["istup"][0] = -1
+    meson_parameters["idup"][0] = 2212
+    meson_parameters["mothup"][0, 0] = 0 # Some of these lines setting things to zero are irrelevant but I'll keep them here for now
+    meson_parameters["mothup"][1, 0] = 0
+    meson_parameters["icolup"][0, 0] = 0
+    meson_parameters["icolup"][1, 0] = 0
+    for i in range(4):
+        pup[i, 0] = q[i, 0]
+    pup[4,0] = np.sqrt(q[3,0]**2 - q[2, 0]**2 - q[1, 0]**2 - q[0,0]**2)
+    meson_parameters["vtimup"][0] = 0
+    meson_parameters["spinup"][0] = 9
+
+    q[:, 1] = [0, 0, -ebeam * beta, ebeam]
+    meson_parameters["istup"][1] = -1
+    if args.ppbar == True:
+        meson_parameters["idup"][1] = -2212
+    else:
+        meson_parameters["idup"][1] = 221
+    meson_parameters["mothup"][0, 1] = 0
+    meson_parameters["mothup"][1, 1] = 0
+    meson_parameters["icolup"][0, 1] = 0
+    meson_parameters["icolup"][1, 1] = 0
+    for i in range(4):
+        pup[i, 1] = q[i, 1]
+    pup[4, 1] = np.sqrt(q[3, 1]**2 - q[2, 1]**2 - q[1, 1]**2 - q[0,1]**2)
+    meson_parameters["vtimup"] = 0
+    meson_parameters["spinup"] = 9
+
+    # ToDo: continue here from fortran line 497
 
 main()
