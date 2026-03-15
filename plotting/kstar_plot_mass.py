@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
+"""Before running this script, dimemc must be run with the kstar flag. It will probably
+work even if you don't run the correct flag but the data could be nonsense."""
+
 import ROOT
+from pathlib import Path
 
 def main():
     # Open the ROOT file
-    file_path = "exrec.root"
-    root_file = ROOT.TFile(file_path)
+    file_path = Path(__file__).parent.parent / "data" / "exrec.root" # I'm sure there is a better way to do this. Will look into it.
+    root_file = ROOT.TFile(str(file_path))
     
     if not root_file or root_file.IsZombie():
         print(f"Error: Could not open file {file_path}")
@@ -70,10 +74,11 @@ def main():
     legend.Draw()
     
     # save canvas
-    canvas.SaveAs("plots/kstar_decay_mass.png")
+    save_path = Path(__file__).parent.parent / "plots"
+    canvas.SaveAs(str(save_path / "kstar_decay_mass.png"))
     
     # Save histograms as ROOT file
-    output_file = ROOT.TFile("plots/kstar_decay_mass.root", "RECREATE")
+    output_file = ROOT.TFile(str(save_path / "kstar_decay_mass.root"), "RECREATE")
     hist_no_cuts.Write()
     hist_p_cut.Write()
     output_file.Close()
