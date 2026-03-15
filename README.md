@@ -1,2 +1,2 @@
 # DimePy
-Translation of DimeMC from Fortran to Python
+Translation of DimeMC from Fortran to Python and scripts for plotting generated data.

@@ -9,3 +9,5 @@ dime
 /dimemc
 .venv
 .DS_Store
+*.png
+*.root

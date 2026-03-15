@@ -1,0 +1,4 @@
+# This project uses PyROOT (ROOT). PyROOT is not typically installed via pip.
+# Install ROOT/PyROOT via your system package manager or conda (recommended):
+#   conda install -c conda-forge root
+# No pip requirements are strictly required for PyROOT-only script.
