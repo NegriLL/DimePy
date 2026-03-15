@@ -99,9 +99,10 @@ def read_file(input_file, output_file):
                     py = float(particle_parts[8])
                     pz = float(particle_parts[9])
                     e = float(particle_parts[10])
+                    m = float(particle_parts[11])
                     
                     # Store produced particle data with event number and id
-                    produced_particles.append([current_event, particle_id, px, py, pz, e])
+                    produced_particles.append([current_event, particle_id, px, py, pz, e, m])
                     
                     line_idx += 1
             except (ValueError, IndexError):
@@ -133,6 +134,7 @@ def read_file(input_file, output_file):
     produced_py = ROOT.std.vector('double')()
     produced_pz = ROOT.std.vector('double')()
     produced_e = ROOT.std.vector('double')()
+    produced_m = ROOT.std.vector('double')()
     
     tree.Branch("event_number", event_no)
     tree.Branch("p1_in_pz", incoming_p1_pz)
@@ -151,6 +153,7 @@ def read_file(input_file, output_file):
     tree.Branch("produced_py", produced_py)
     tree.Branch("produced_pz", produced_pz)
     tree.Branch("produced_e", produced_e)
+    tree.Branch("produced_m", produced_m)
     
     # Fill tree with event data
     for i in range(len(event_numbers)):
@@ -171,6 +174,7 @@ def read_file(input_file, output_file):
         produced_py.clear()
         produced_pz.clear()
         produced_e.clear()
+        produced_m.clear()
         
         event_no.push_back(event_numbers[i])
         
@@ -197,6 +201,7 @@ def read_file(input_file, output_file):
                 produced_py.push_back(particle[3])
                 produced_pz.push_back(particle[4])
                 produced_e.push_back(particle[5])
+                produced_m.push_back(particle[6])
         
         tree.Fill()
     
